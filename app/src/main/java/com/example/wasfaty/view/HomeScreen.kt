@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -64,9 +65,10 @@ import com.example.wasfaty.ui.theme.GreenMain
 
 
 @Composable
-fun HomeScreen(viewModel: HomeScreenViewModel?) {
+fun HomeScreen(viewModel: HomeScreenViewModel?, onRecipeClick: (Int) -> Unit) {
     val newestRecipes by viewModel?.newest5Recipes!!.observeAsState(emptyList())
     val allRecipes by viewModel!!.allRecipes.observeAsState(emptyList())
+
 
     Column(modifier = Modifier
         .padding(horizontal = 12.dp, vertical = 8.dp)
@@ -87,11 +89,12 @@ fun HomeScreen(viewModel: HomeScreenViewModel?) {
         Categories()
 
         Column(Modifier.verticalScroll(rememberScrollState())) {
-            NewRecipes(recipes = newestRecipes)
-            RecomendedRecipes(recipes = allRecipes)
+            NewRecipes(recipes = newestRecipes, onRecipeClick = onRecipeClick)
+            RecommendedRecipes(recipes = allRecipes, onRecipeClick = onRecipeClick)
         }
     }
 }
+
 
 @Composable
 fun Categories() {
@@ -125,7 +128,7 @@ fun CategoryItem(category: Categorie) {
         ) {
             Row {
                 Text(text = category.name, color = Color.White, fontSize = 12.sp)
-                if (category.iconResId!=null) Icon(painter = painterResource(id = category.iconResId), contentDescription ="CategorieIcon" )
+                if (category.iconResId!=null) Icon(painter = painterResource(id = category.iconResId), contentDescription ="CategoryIcon" )
             }
         }
         // Optionally show an icon or other UI components here
@@ -233,20 +236,11 @@ fun SearchScreen() {
 }
 
 
-
-
-
-
-
-
-
 @Composable
 fun RecipeCard(
-    title: String,
-    time: String,
-    difficulty: String,
-    imagePath: String? = null,
-    verticalStyle: Boolean = false
+    recipe: Recipe,
+    verticalStyle: Boolean = false,
+    onClick: () -> Unit // Add a lambda for the click action
 ) {
     Card(
         shape = RoundedCornerShape(12.dp),
@@ -255,28 +249,45 @@ fun RecipeCard(
             .then(
                 if (verticalStyle) Modifier
                     .width(160.dp)
-                    .height(240.dp) else Modifier
+                    .height(220.dp) else Modifier
                     .fillMaxWidth()
                     .height(180.dp)
             )
-            .padding(8.dp),
+            .padding(8.dp)
+            .clickable(onClick = onClick), // Add clickable modifier
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             // Background Image
-            Image(
-                painter = if (imagePath != null) {
-                    rememberAsyncImagePainter(
-                        model = Uri.parse(imagePath), // Convert the imagePath to a Uri
-                        placeholder = painterResource(id = R.drawable.recipetem), // Optional: placeholder image
-                        error = painterResource(id = R.drawable.recipetem) // Optional: error image if loading fails
+
+                    Image(
+                        painter = when {
+                            // Check if imagePath is a valid resource ID (integer)
+                            recipe.imagePath?.toIntOrNull() != null -> {
+                                Log.d("RecipeImage", "Loading image from resource ID: ${recipe.imagePath}")
+                                painterResource(id = recipe.imagePath.toInt())
+                            }
+                            // Check if imagePath is a valid URI
+                            recipe.imagePath != null -> {
+                                Log.d("RecipeImage", "Loading image from URI: ${recipe.imagePath}")
+                                rememberAsyncImagePainter(
+                                    model = Uri.parse(recipe.imagePath),
+                                    error = painterResource(id = R.drawable.chocolate_chip_cookies) // Set error image if loading fails
+                                ).also {
+                                    Log.d("RecipeImage", "Async image loading started")
+                                }
+                            }
+                            // Fallback to a default image if imagePath is null
+                            else -> {
+                                Log.d("RecipeImage", "Image path is null, loading default image")
+                                painterResource(id = R.drawable.chocolate_chip_cookies)
+                            }
+                        },
+                        contentDescription = "Recipe Image",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
                     )
-                } else {
-                    painterResource(id = R.drawable.recipetem) // Default image if imagePath is null
-                },
-                contentDescription = "Recipe Image",
-                contentScale = ContentScale.Crop, // Crop the image to fit the card
-                modifier = Modifier.fillMaxSize()
-            )
+
+
 
             // Gradient Overlay
             Box(
@@ -292,7 +303,7 @@ fun RecipeCard(
                     .padding(4.dp),
                 verticalArrangement = Arrangement.Bottom
             ) {
-                Text(text = title, color = Color.White, fontWeight = Bold)
+                Text(text = recipe.title, color = Color.White, fontWeight = Bold)
 
                 Spacer(modifier = Modifier.height(4.dp))
 
@@ -310,7 +321,7 @@ fun RecipeCard(
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text(text = time, color = Color.White, fontSize = 12.sp)
+                        Text(text = recipe.time, color = Color.White, fontSize = 12.sp)
                     }
 
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -320,7 +331,7 @@ fun RecipeCard(
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text(text = difficulty, color = Color.White, fontSize = 12.sp)
+                        Text(text = recipe.difficulty, color = Color.White, fontSize = 12.sp)
                     }
                 }
                 Spacer(modifier = Modifier.height(4.dp))
@@ -340,16 +351,15 @@ fun RecipeCard(
     }
 }
 
+
 @Composable
-fun NewRecipes(recipes: List<Recipe>) {
+fun NewRecipes(recipes: List<Recipe>, onRecipeClick: (Int) -> Unit) {
     Text(text = "Newest", color = Color.White, fontSize = 18.sp, fontWeight = Bold)
     LazyRow {
         items(recipes) { recipe ->
             RecipeCard(
-                title = recipe.title,
-                time = recipe.time,
-                difficulty = recipe.difficulty,
-                imagePath = recipe.imagePath,
+                recipe = recipe,
+                onClick = { onRecipeClick(recipe.id) }, // Pass recipe ID
                 verticalStyle = true
             )
         }
@@ -357,7 +367,7 @@ fun NewRecipes(recipes: List<Recipe>) {
 }
 
 @Composable
-fun RecomendedRecipes(recipes: List<Recipe>) {
+fun RecommendedRecipes(recipes: List<Recipe>, onRecipeClick: (Int) -> Unit) {
     Row(Modifier.padding(vertical = 8.dp)) {
         Text(text = "Recommended", fontSize = 16.sp, color = Color.White, fontWeight = Bold)
         Spacer(modifier = Modifier.weight(1f))
@@ -366,12 +376,12 @@ fun RecomendedRecipes(recipes: List<Recipe>) {
     Column {
         recipes.forEach { recipe ->
             RecipeCard(
-                title = recipe.title,
-                time = recipe.time,
-                difficulty = recipe.difficulty,
-                imagePath = recipe.imagePath
+                recipe = recipe,
+                onClick = { onRecipeClick(recipe.id) } // Pass recipe ID
             )
         }
     }
 }
+
+
 

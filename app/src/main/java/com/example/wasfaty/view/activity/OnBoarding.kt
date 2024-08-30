@@ -28,16 +28,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import com.example.wasfaty.ui.theme.OnboardingTheme
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.PagerState
 import com.example.wasfaty.models.entity.LoaderIntro
 import com.example.wasfaty.models.entity.OnBoardingData
 import com.example.wasfaty.ui.theme.Grey300
-import com.example.wasfaty.ui.theme.OnboardingTheme
 import com.example.wasfaty.ui.theme.RedLight
 import kotlinx.coroutines.launch
-import kotlin.system.exitProcess
 
 
 class OnBoarding : ComponentActivity() {

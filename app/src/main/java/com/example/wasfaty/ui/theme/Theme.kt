@@ -23,7 +23,7 @@ private val DarkColorScheme = darkColorScheme(
     onPrimary = Color.White,        // Text or icons on primary background (usually white or light gray)
     background = Screen_Bg,         // General background color for the app
     onBackground = Color.White,     // Text or icons on the general background
-    surface = Color.Black,          // Elevated surfaces like cards or dialogs
+    surface = Color.White,          // Elevated surfaces like cards or dialogs
     onSurface = Color.White,        // Text or icons on surfaces (should contrast with the surface color)
     error = Color.Red,              // Error color for error states or messages
     onError = Color.White           // Text or icons on error backgrounds
@@ -33,7 +33,13 @@ private val DarkColorScheme = darkColorScheme(
 private val LightColorScheme = lightColorScheme(
     primary = Purple40,
     secondary = PurpleGrey40,
-    tertiary = Pink40
+    tertiary = Pink40,            // Main background color (e.g., dark gray or black)
+    onPrimary = Color.White,        // Text or icons on primary background (usually white or light gray)
+    onBackground = Color.Black,     // Text or icons on the general background
+    surface = Color.Black,          // Elevated surfaces like cards or dialogs
+    onSurface = Color.White,        // Text or icons on surfaces (should contrast with the surface color)
+    error = Color.Red,              // Error color for error states or messages
+    onError = Color.White
 
     /* Other default colors to override
     background = Color(0xFFFFFBFE),
@@ -49,7 +55,7 @@ private val LightColorScheme = lightColorScheme(
 
 @Composable
 fun WasfatyTheme(
-    darkTheme: Boolean = true,
+    darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
@@ -66,7 +72,7 @@ fun WasfatyTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography,
+        typography = AppTypography,
         content = content
     )
 }
@@ -98,7 +104,7 @@ fun OnboardingTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography,
+        typography = AppTypography,
         content = content
     )
 }

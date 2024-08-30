@@ -1,5 +1,6 @@
 package com.example.wasfaty.view
 
+import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -37,6 +38,11 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.TextFieldColors
 import com.example.wasfaty.models.entity.Recipe
 
+@Preview
+@Composable fun ThisScreenPreview(){
+    AddRecipeScreen { Recipe ->
+    }
+}
 
 
 @Composable
@@ -64,7 +70,19 @@ fun AddRecipeScreen(onSaveClick: (Recipe) -> Unit) {
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-        selectedImageUri = uri
+        if (uri != null) {
+            selectedImageUri = uri
+            try {
+                // Persist URI permission
+                context.contentResolver.takePersistableUriPermission(
+                    uri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+            } catch (e: SecurityException) {
+                // Handle exception if permission could not be persisted
+                Toast.makeText(context, "Failed to persist URI permission", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     Column(
@@ -280,7 +298,7 @@ fun ImagePickerSection(selectedImageUri: Uri?, onSelectImageClick: () -> Unit) {
                 painter = // Replace with your placeholder drawable
                 rememberAsyncImagePainter(
                     ImageRequest.Builder(LocalContext.current).data(data = selectedImageUri)
-                        .apply<ImageRequest.Builder>(block = fun ImageRequest.Builder.() {
+                        .apply(block = fun ImageRequest.Builder.() {
                             crossfade(true)
                             error(R.drawable.placeholder_image) // Replace with your placeholder drawable
                         }).build()
@@ -339,7 +357,7 @@ fun DifficultyDropdown(
         ) {
             difficultyLevels.forEach { difficulty ->
                 DropdownMenuItem(
-                    modifier = Modifier.fillMaxWidth(),
+                    
                     text = { Text(text = difficulty) },
                     onClick = {
                         onDifficultyChange(difficulty)

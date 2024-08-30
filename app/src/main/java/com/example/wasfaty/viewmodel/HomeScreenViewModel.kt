@@ -4,11 +4,12 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.room.Index
 import com.example.wasfaty.models.datasource.local.InitialRecipes
 import com.example.wasfaty.models.entity.Recipe
 import com.example.wasfaty.models.repository.RecipeRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class HomeScreenViewModel(private val repository: RecipeRepository) : ViewModel() {
 
@@ -21,15 +22,16 @@ class HomeScreenViewModel(private val repository: RecipeRepository) : ViewModel(
     private val _recipeById = MutableLiveData<Recipe>()
     val RecipeById: LiveData<Recipe> = _recipeById
 
-
     init {
         initializeRecipes()
         loadRecipes()
     }
 
-    private fun initializeRecipes(){
+    private fun initializeRecipes() {
         viewModelScope.launch {
-            val isFirstRun = checkIfFirstRun()
+            val isFirstRun = withContext(Dispatchers.IO) {
+                checkIfFirstRun()
+            }
             if (isFirstRun) {
                 addInitialRecipes()
             }
@@ -37,33 +39,43 @@ class HomeScreenViewModel(private val repository: RecipeRepository) : ViewModel(
     }
 
     private suspend fun checkIfFirstRun(): Boolean {
-        return repository.getRecipeCount() == 0
+        return withContext(Dispatchers.IO) {
+            repository.getRecipeCount() == 0
+        }
     }
+
     private fun addInitialRecipes() {
-        val initialRecipes =InitialRecipes
-        viewModelScope.launch {
-            initialRecipes.forEach{
+        val initialRecipes = InitialRecipes
+        viewModelScope.launch(Dispatchers.IO) {
+            initialRecipes.forEach {
                 repository.addRecipe(it)
             }
         }
     }
+
     private fun loadRecipes() {
         viewModelScope.launch {
-            val recipes = repository.getAllRecipes()
+            val recipes = withContext(Dispatchers.IO) {
+                repository.getAllRecipes()
+            }
+            withContext(Dispatchers.Main){
             _allRecipes.value = recipes
             updateNewest5Recipes(recipes)
+            }
         }
     }
 
     fun addRecipe(recipe: Recipe) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             val generatedId = repository.addRecipe(recipe).toInt()
             // Update the recipe object with the new ID (if needed)
             recipe.id = generatedId
-            // Update LiveData after adding a new recipe
-            val updatedRecipes = _allRecipes.value.orEmpty() + recipe
-            _allRecipes.value = updatedRecipes
-            updateNewest5Recipes(updatedRecipes)
+            withContext(Dispatchers.Main) {
+                // Update LiveData after adding a new recipe
+                val updatedRecipes = _allRecipes.value.orEmpty() + recipe
+                _allRecipes.value = updatedRecipes
+                updateNewest5Recipes(updatedRecipes)
+            }
         }
     }
 
@@ -71,10 +83,12 @@ class HomeScreenViewModel(private val repository: RecipeRepository) : ViewModel(
         _newest5Recipes.value = recipes.takeLast(5)
     }
 
-    fun getRecipeById(id:Int){
+    fun getRecipeById(id: Int) {
         viewModelScope.launch {
-            _recipeById.value = repository.getRecipeById(id)
+            val recipe = withContext(Dispatchers.IO) {
+                repository.getRecipeById(id)
+            }
+            _recipeById.value = recipe!!
         }
     }
-
 }

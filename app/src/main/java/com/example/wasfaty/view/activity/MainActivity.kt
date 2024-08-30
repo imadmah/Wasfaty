@@ -36,6 +36,7 @@ import com.example.wasfaty.viewmodel.HomeScreenViewModelFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainActivity : ComponentActivity() {
 
@@ -69,7 +70,7 @@ class MainActivity : ComponentActivity() {
                 )[HomeScreenViewModel::class.java]
 
                 // Once the ViewModel is ready, set the content
-                runOnUiThread {
+                withContext(Dispatchers.Main) {
                     setContent {
                         WasfatyTheme {
                             MyApp(homeScreenViewModel)

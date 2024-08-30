@@ -1,7 +1,6 @@
 package com.example.wasfaty.view
 
 import android.net.Uri
-import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -224,8 +223,7 @@ fun SearchScreen() {
                 query = newQuery
             },
             onSearch = { searchQuery ->
-                // Handle search logic here
-                Log.d("Search", "Searching for: $searchQuery")
+
             },
             backgroundColor = SearchBar, // Customize the background color
             contentColor = Color.White, // Customize the text color
@@ -263,22 +261,18 @@ fun RecipeCard(
                         painter = when {
                             // Check if imagePath is a valid resource ID (integer)
                             recipe.imagePath?.toIntOrNull() != null -> {
-                                Log.d("RecipeImage", "Loading image from resource ID: ${recipe.imagePath}")
                                 painterResource(id = recipe.imagePath.toInt())
                             }
                             // Check if imagePath is a valid URI
                             recipe.imagePath != null -> {
-                                Log.d("RecipeImage", "Loading image from URI: ${recipe.imagePath}")
                                 rememberAsyncImagePainter(
                                     model = Uri.parse(recipe.imagePath),
                                     error = painterResource(id = R.drawable.chocolate_chip_cookies) // Set error image if loading fails
                                 ).also {
-                                    Log.d("RecipeImage", "Async image loading started")
                                 }
                             }
                             // Fallback to a default image if imagePath is null
                             else -> {
-                                Log.d("RecipeImage", "Image path is null, loading default image")
                                 painterResource(id = R.drawable.chocolate_chip_cookies)
                             }
                         },

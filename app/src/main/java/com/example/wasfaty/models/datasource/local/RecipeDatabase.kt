@@ -21,7 +21,7 @@ abstract class RecipeDatabase : RoomDatabase() {
                     context.applicationContext,
                     RecipeDatabase::class.java,
                     "recipe_database"
-                ).allowMainThreadQueries().build()
+                    ).build()
                 INSTANCE = instance
                 instance
             }

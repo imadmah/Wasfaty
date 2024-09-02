@@ -243,7 +243,8 @@ fun AddRecipeScreen(onSaveClick: (Recipe) -> Unit) {
                         difficulty = difficultyState,
                         ingredients = ingredientsState,
                         cookingSteps = stepsState,
-                        imagePath = selectedImageUri?.toString()
+                        imagePath = selectedImageUri?.toString(),
+                        category = "21" ,
                     )
                     onSaveClick(newRecipe)
 

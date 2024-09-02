@@ -6,18 +6,29 @@ import com.example.wasfaty.models.entity.Recipe
 
 class RecipeRepository(private val localDataSource: RecipeDataSource) {
 
-     fun getAllRecipes(): List<Recipe> = localDataSource.getAllRecipes()
+    fun getAllRecipes(): List<Recipe> = localDataSource.getAllRecipes()
 
-     fun addRecipe(recipe: Recipe) : Long {
+    fun addRecipe(recipe: Recipe) : Long {
        return localDataSource.insertRecipe(recipe)
     }
 
-     fun getRecipeById(id: Int): Recipe? = localDataSource.getRecipeById(id)
+    fun getRecipeById(id: Int): Recipe? = localDataSource.getRecipeById(id)
 
-     fun deleteRecipeById(id: Int) {
+    fun deleteRecipeById(id: Int) {
         localDataSource.deleteRecipeById(id)
     }
-      fun getRecipeCount(): Int {
+
+    fun getRecipeCount(): Int {
         return localDataSource.getRecipeCount()
+    }
+
+    fun getBookmarkedRecipes() : List<Recipe> {
+       return localDataSource.getBookmarkedRecipes()
+    }
+    fun getRecipesByCategory(category: String):List<Recipe> {
+        return localDataSource.getRecipesByCategory(category)
+    }
+    fun updateBookmarkStatus(recipeId: Int, isBookmarked: Boolean){
+        localDataSource.updateBookmarkStatus(recipeId,isBookmarked)
     }
 }

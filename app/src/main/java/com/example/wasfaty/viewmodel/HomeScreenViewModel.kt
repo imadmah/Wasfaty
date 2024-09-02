@@ -1,5 +1,6 @@
 package com.example.wasfaty.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -20,11 +21,18 @@ class HomeScreenViewModel(private val repository: RecipeRepository) : ViewModel(
     val allRecipes: LiveData<List<Recipe>> = _allRecipes
 
     private val _recipeById = MutableLiveData<Recipe>()
-    val RecipeById: LiveData<Recipe> = _recipeById
+    val recipeById: LiveData<Recipe> = _recipeById
+
+    private val _bookmarkedRecipes = MutableLiveData<List<Recipe>>(emptyList())
+    val bookmarkedRecipes: LiveData<List<Recipe>> = _bookmarkedRecipes
+
+    private val _chosenCategoryRecipes = MutableLiveData<List<Recipe>>(emptyList())
+    val chosenCategory: LiveData<List<Recipe>> = _chosenCategoryRecipes
 
     init {
         initializeRecipes()
         loadRecipes()
+
     }
 
     private fun initializeRecipes() {
@@ -61,6 +69,7 @@ class HomeScreenViewModel(private val repository: RecipeRepository) : ViewModel(
             withContext(Dispatchers.Main){
             _allRecipes.value = recipes
             updateNewest5Recipes(recipes)
+            getBookmarkedRecipes()
             }
         }
     }
@@ -91,4 +100,58 @@ class HomeScreenViewModel(private val repository: RecipeRepository) : ViewModel(
             _recipeById.value = recipe!!
         }
     }
+
+    fun toggleBookmark(recipeId: Int, isBookmarked: Boolean) {
+        viewModelScope.launch {
+
+        }
+    }
+
+    private fun getBookmarkedRecipes() {
+        viewModelScope.launch {
+           val bookmarkedRecipes = withContext(Dispatchers.IO){
+            repository.getBookmarkedRecipes()
+           }
+            _bookmarkedRecipes.value = bookmarkedRecipes
+        }
+    }
+
+    fun getRecipesByCategory(category: String) {
+        viewModelScope.launch {
+            val chosenRecipes = withContext(Dispatchers.IO){
+                repository.getRecipesByCategory(category)
+            }
+            _chosenCategoryRecipes.value = chosenRecipes
+        }
+    }
+
+    fun updateBookmarkStatus(recipeId: Int, isBookmarked: Boolean) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                // Update the bookmark status in the repository (database)
+                repository.updateBookmarkStatus(recipeId, isBookmarked)
+            }
+
+            withContext(Dispatchers.Main) {
+                // Update the bookmark status in _allRecipes
+                val updatedAllRecipes = _allRecipes.value?.map { recipe ->
+                    if (recipe.id == recipeId) {
+                        recipe.copy(isBookmarked = isBookmarked)
+                    } else {
+                        recipe
+                    }
+                }?.toMutableList()
+
+                _allRecipes.value = updatedAllRecipes!!
+
+                // Re-filter the bookmarked recipes
+                _bookmarkedRecipes.value = updatedAllRecipes?.filter { it.isBookmarked }
+
+                // Debug: Print updated bookmarked recipes
+                Log.d("UpdateBookmarkStatus", "Updated Bookmarked Recipes: ${_bookmarkedRecipes.value}")
+            }
+        }
+    }
+
 }
+

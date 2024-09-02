@@ -17,7 +17,18 @@ class RecipeDataSource(private val recipeDao: RecipeDao) {
         recipeDao.deleteRecipeById(id)
     }
 
-      fun getRecipeCount(): Int {
+    fun getRecipeCount(): Int {
         return recipeDao.getRecipeCount()
+    }
+
+    fun getBookmarkedRecipes() : List<Recipe>{
+       return recipeDao.getBookmarkedRecipes()
+    }
+    fun getRecipesByCategory(category: String):List<Recipe> {
+       return recipeDao.getRecipesByCategory(category)
+    }
+
+    fun updateBookmarkStatus(recipeId: Int, isBookmarked: Boolean){
+        recipeDao.updateBookmarkStatus(recipeId,isBookmarked)
     }
 }

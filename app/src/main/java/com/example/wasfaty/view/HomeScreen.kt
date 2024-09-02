@@ -1,6 +1,7 @@
 package com.example.wasfaty.view
 
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -59,6 +60,8 @@ import com.example.wasfaty.ui.theme.SearchBar
 import com.example.wasfaty.ui.theme.TextColor
 import com.example.wasfaty.viewmodel.HomeScreenViewModel
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import com.example.wasfaty.ui.theme.GreenMain
 
@@ -67,7 +70,6 @@ import com.example.wasfaty.ui.theme.GreenMain
 fun HomeScreen(viewModel: HomeScreenViewModel?, onRecipeClick: (Int) -> Unit) {
     val newestRecipes by viewModel?.newest5Recipes!!.observeAsState(emptyList())
     val allRecipes by viewModel!!.allRecipes.observeAsState(emptyList())
-
 
     Column(modifier = Modifier
         .padding(horizontal = 12.dp, vertical = 8.dp)
@@ -88,8 +90,8 @@ fun HomeScreen(viewModel: HomeScreenViewModel?, onRecipeClick: (Int) -> Unit) {
         Categories()
 
         Column(Modifier.verticalScroll(rememberScrollState())) {
-            NewRecipes(recipes = newestRecipes, onRecipeClick = onRecipeClick)
-            RecommendedRecipes(recipes = allRecipes, onRecipeClick = onRecipeClick)
+            NewRecipes(recipes = newestRecipes, onRecipeClick = onRecipeClick,viewModel)
+            RecommendedRecipes(recipes = allRecipes, onRecipeClick = onRecipeClick,viewModel)
         }
     }
 }
@@ -223,7 +225,6 @@ fun SearchScreen() {
                 query = newQuery
             },
             onSearch = { searchQuery ->
-
             },
             backgroundColor = SearchBar, // Customize the background color
             contentColor = Color.White, // Customize the text color
@@ -238,8 +239,10 @@ fun SearchScreen() {
 fun RecipeCard(
     recipe: Recipe,
     verticalStyle: Boolean = false,
-    onClick: () -> Unit // Add a lambda for the click action
+    onClick: () -> Unit ,
+    viewModel: HomeScreenViewModel?
 ) {
+    val context = LocalContext.current
     Card(
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 32.dp),
@@ -255,9 +258,7 @@ fun RecipeCard(
             .clickable(onClick = onClick), // Add clickable modifier
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            // Background Image
-
-                    Image(
+            Image(
                         painter = when {
                             // Check if imagePath is a valid resource ID (integer)
                             recipe.imagePath?.toIntOrNull() != null -> {
@@ -268,8 +269,7 @@ fun RecipeCard(
                                 rememberAsyncImagePainter(
                                     model = Uri.parse(recipe.imagePath),
                                     error = painterResource(id = R.drawable.chocolate_chip_cookies) // Set error image if loading fails
-                                ).also {
-                                }
+                                )
                             }
                             // Fallback to a default image if imagePath is null
                             else -> {
@@ -279,18 +279,12 @@ fun RecipeCard(
                         contentDescription = "Recipe Image",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize()
-                    )
-
-
-
-            // Gradient Overlay
+            )
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(Color(0x40000000))
             )
-
-            // Overlay content
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -340,6 +334,9 @@ fun RecipeCard(
                     .align(Alignment.TopEnd)
                     .padding(8.dp)
                     .size(24.dp)
+                    .clickable { viewModel!!.updateBookmarkStatus(recipe.id,!recipe.isBookmarked)
+                        Toast.makeText(context,"Recipe Added to Bookmarked", Toast.LENGTH_SHORT).show()
+                    }
             )
         }
     }
@@ -347,21 +344,22 @@ fun RecipeCard(
 
 
 @Composable
-fun NewRecipes(recipes: List<Recipe>, onRecipeClick: (Int) -> Unit) {
+fun NewRecipes(recipes: List<Recipe>, onRecipeClick: (Int) -> Unit,viewModel: HomeScreenViewModel? ) {
     Text(text = "Newest", color = Color.White, fontSize = 18.sp, fontWeight = Bold)
     LazyRow {
         items(recipes) { recipe ->
             RecipeCard(
                 recipe = recipe,
                 onClick = { onRecipeClick(recipe.id) }, // Pass recipe ID
-                verticalStyle = true
+                verticalStyle = true,
+                viewModel= viewModel
             )
         }
     }
 }
 
 @Composable
-fun RecommendedRecipes(recipes: List<Recipe>, onRecipeClick: (Int) -> Unit) {
+fun RecommendedRecipes(recipes: List<Recipe>, onRecipeClick: (Int) -> Unit,viewModel: HomeScreenViewModel?) {
     Row(Modifier.padding(vertical = 8.dp)) {
         Text(text = "Recommended", fontSize = 16.sp, color = Color.White, fontWeight = Bold)
         Spacer(modifier = Modifier.weight(1f))
@@ -371,7 +369,8 @@ fun RecommendedRecipes(recipes: List<Recipe>, onRecipeClick: (Int) -> Unit) {
         recipes.forEach { recipe ->
             RecipeCard(
                 recipe = recipe,
-                onClick = { onRecipeClick(recipe.id) } // Pass recipe ID
+                onClick = { onRecipeClick(recipe.id) }, // Pass recipe ID
+                viewModel= viewModel
             )
         }
     }

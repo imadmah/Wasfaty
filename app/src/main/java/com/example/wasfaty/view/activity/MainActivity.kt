@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -27,6 +26,7 @@ import com.example.wasfaty.models.datasource.local.RecipeDataSource
 import com.example.wasfaty.models.datasource.local.RecipeDatabase
 import com.example.wasfaty.models.entity.Recipe
 import com.example.wasfaty.models.repository.RecipeRepository
+import com.example.wasfaty.view.BookmarkScreen
 import com.example.wasfaty.view.HomeScreen
 import com.example.wasfaty.view.RecipeScreen
 import com.example.wasfaty.view.Screen
@@ -34,9 +34,9 @@ import com.example.wasfaty.view.navBar.ColorButtonNavBar
 import com.example.wasfaty.viewmodel.HomeScreenViewModel
 import com.example.wasfaty.viewmodel.HomeScreenViewModelFactory
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+
 
 class MainActivity : ComponentActivity() {
 
@@ -105,7 +105,8 @@ fun Preview() {
 @Composable
 fun MyApp(homeScreenViewModel: HomeScreenViewModel) {
     val navController = rememberNavController()
-    val RecipebyId by homeScreenViewModel.RecipeById.observeAsState()
+    val recipebyId by homeScreenViewModel.recipeById.observeAsState()
+
 
     Scaffold(
         bottomBar = {
@@ -130,7 +131,7 @@ fun MyApp(homeScreenViewModel: HomeScreenViewModel) {
             composable(Screen.RecipeDetails.route) { backStackEntry ->
                 val recipeId = backStackEntry.arguments?.getString("recipeId")?.toIntOrNull()
                 recipeId?.let {homeScreenViewModel.getRecipeById(it) }
-                val recipe = RecipebyId
+                val recipe = recipebyId
                 if (recipe != null) { //ToDo know the smart Cast diffrenece and shit here aka if i use val recipe etc
                     RecipeScreen(recipe)
                 }
@@ -138,14 +139,13 @@ fun MyApp(homeScreenViewModel: HomeScreenViewModel) {
             composable(Screen.Settings.route) {
                 AddRecipeScreen { recipe ->
                     homeScreenViewModel.addRecipe(recipe)
-
                 }
             }
             composable(Screen.PlanRecipeScreen.route) {
                 // PlanRecipeScreen logic
             }
             composable(Screen.BookmarkScreen.route) {
-                HomeScreen(homeScreenViewModel) { recipeId ->
+                BookmarkScreen(homeScreenViewModel) { recipeId ->
                     navController.navigate(Screen.RecipeDetails.createRoute(recipeId))
                 }
             }

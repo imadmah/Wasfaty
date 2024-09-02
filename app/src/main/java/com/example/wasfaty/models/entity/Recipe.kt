@@ -11,6 +11,8 @@ data class Recipe(
     val difficulty: String,
     val ingredients : String,
     val cookingSteps : String,
-    val imagePath: String? = null
-)
+    val imagePath: String? = null,
+    val isBookmarked: Boolean = false,
+    val category: String,
 
+    )

@@ -82,7 +82,8 @@ fun preview(){
         difficulty = "Easy",
         ingredients = "2 eggs\n2 tbs mild mustard\n2 tbs each tarragon and dill, finely chopped\n1/4 cup (75g) plain flour\n2 cups (100g) panko breadcrumbs\n4 x 200g skinless salmon fillets\nSunflower oil, to shallow-fry\n1 cup Greek yoghurt\n1 garlic clove, crushed\nZest and juice of ½ lemon, plus extra wedges to serve\nHerb salad or green salad leaves, to serve",
         imagePath = "res://salmon_schnitzel", // Example image resource,
-        cookingSteps = "dsfsd"
+        cookingSteps = "dsfsd",
+        category = "Fish",
     )
 
     RecipeScreen(recipe  )

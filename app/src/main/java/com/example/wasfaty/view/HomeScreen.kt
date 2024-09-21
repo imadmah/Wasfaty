@@ -40,6 +40,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -61,8 +62,8 @@ import com.example.wasfaty.ui.theme.TextColor
 import com.example.wasfaty.viewmodel.HomeScreenViewModel
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
+import com.example.wasfaty.models.datasource.local.categories
 import com.example.wasfaty.ui.theme.GreenMain
 
 
@@ -70,69 +71,66 @@ import com.example.wasfaty.ui.theme.GreenMain
 fun HomeScreen(viewModel: HomeScreenViewModel?, onRecipeClick: (Int) -> Unit) {
     val newestRecipes by viewModel?.newest5Recipes!!.observeAsState(emptyList())
     val allRecipes by viewModel!!.allRecipes.observeAsState(emptyList())
-
-    Column(modifier = Modifier
-        .padding(horizontal = 12.dp, vertical = 8.dp)
-        .fillMaxWidth()
-    ) {
-        Row{
-            Icon(Icons.Default.Menu, contentDescription ="Menu" )
-            Spacer(modifier = Modifier.weight(1f))
-            Text(text ="Home",fontWeight = Bold, fontSize = 18.sp,color= TextColor)
-            Spacer(modifier = Modifier.weight(1f))
-            Icon(painter = painterResource(R.drawable.bell), contentDescription ="Notifications",tint= GreenMain )
+    var selectedCategory by remember { mutableStateOf<Categorie?>(null) }
+    val categorizedRecipes by remember {
+        derivedStateOf {
+            selectedCategory?.let { category ->
+                allRecipes.filter { it.category == category.name }
+            } ?: allRecipes
         }
-        Spacer(modifier = Modifier.height(16.dp))
+    }
 
-
+    Column(
+        modifier = Modifier
+            .padding(horizontal = 12.dp, vertical = 8.dp)
+            .fillMaxWidth()
+    ) {
         SearchScreen()
         Text(text = "Categories", fontWeight = Bold, fontSize = 18.sp, color = TextColor)
-        Categories()
+        Categories(selectedCategory) { category ->
+            selectedCategory = if (selectedCategory == category) null else category
+        }
 
-        Column(Modifier.verticalScroll(rememberScrollState())) {
-            NewRecipes(recipes = newestRecipes, onRecipeClick = onRecipeClick,viewModel)
-            RecommendedRecipes(recipes = allRecipes, onRecipeClick = onRecipeClick,viewModel)
+        if (selectedCategory != null) {
+            CategorizedRecipes(recipes = categorizedRecipes, onRecipeClick = onRecipeClick, viewModel)
+        } else {
+            Column(Modifier.verticalScroll(rememberScrollState())) {
+                NewRecipes(recipes = newestRecipes, onRecipeClick = onRecipeClick, viewModel)
+                RecommendedRecipes(recipes = allRecipes, onRecipeClick = onRecipeClick, viewModel)
+            }
         }
     }
 }
-
-
 @Composable
-fun Categories() {
-    val categories = listOf(
-        Categorie(1, "Desserts"),
-        Categorie(2, "Breakfast"),
-        Categorie(3, "Main Course"),
-        Categorie(4, "Salade"),
-        Categorie(5, "Pizza")
-    )
+fun Categories(selectedCategory: Categorie?, onCategoryClick: (Categorie) -> Unit) {
 
     LazyRow(Modifier.padding(vertical = 8.dp)) {
         items(categories) { category ->
-            CategoryItem(category = category)
+            CategoryItem(category = category, isSelected = selectedCategory == category) {
+                onCategoryClick(category)
+            }
         }
     }
 }
 
 @Composable
-fun CategoryItem(category: Categorie) {
+fun CategoryItem(category: Categorie, isSelected: Boolean, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(4.dp)
+            .padding(horizontal =  4.dp)
     ) {
         OutlinedButton(
-            onClick = { /* Handle button click */ },
-            colors = ButtonDefaults.outlinedButtonColors(SearchBar),
+            onClick = onClick,
+            colors = ButtonDefaults.outlinedButtonColors(if (isSelected) Color.Gray else SearchBar),
             border = BorderStroke(0.dp, Color.Transparent),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 2.dp)
         ) {
             Row {
                 Text(text = category.name, color = Color.White, fontSize = 12.sp)
-                if (category.iconResId!=null) Icon(painter = painterResource(id = category.iconResId), contentDescription ="CategoryIcon" )
+                if (category.iconResId != null) Icon(painter = painterResource(id = category.iconResId), contentDescription = "CategoryIcon")
             }
         }
-        // Optionally show an icon or other UI components here
     }
 }
 
@@ -224,7 +222,7 @@ fun SearchScreen() {
             onQueryChanged = { newQuery ->
                 query = newQuery
             },
-            onSearch = { searchQuery ->
+            onSearch = {
             },
             backgroundColor = SearchBar, // Customize the background color
             contentColor = Color.White, // Customize the text color
@@ -240,9 +238,11 @@ fun RecipeCard(
     recipe: Recipe,
     verticalStyle: Boolean = false,
     onClick: () -> Unit ,
-    viewModel: HomeScreenViewModel?
+    viewModel: HomeScreenViewModel
 ) {
-    val context = LocalContext.current
+    val allRecipes by viewModel.allRecipes.observeAsState(initial = emptyList())
+    // Find the current recipe in the allRecipes list
+    val currentRecipe = allRecipes.find { it.id == recipe.id } ?: recipe
     Card(
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 32.dp),
@@ -303,9 +303,9 @@ fun RecipeCard(
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
-                            painter = painterResource(id = R.drawable.bell),
+                            painter = painterResource(id = R.drawable.clock_hour_4),
                             contentDescription = "Time",
-                            tint = Color.Gray,
+                            tint = Color.White,
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
@@ -314,30 +314,32 @@ fun RecipeCard(
 
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
-                            Icons.Default.Face,
+                            painter = painterResource(id = R.drawable.skill_level),
                             contentDescription = "Difficulty",
+                            tint = Color.White,
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(text = recipe.difficulty, color = Color.White, fontSize = 12.sp)
                     }
                 }
-                Spacer(modifier = Modifier.height(4.dp))
             }
 
-            // Bookmark Icon at the top-right corner
+
             Icon(
                 painter = painterResource(id = R.drawable.bookmark),
                 contentDescription = "Bookmark",
-                tint = Color.White,
+                tint = if(currentRecipe.isBookmarked) GreenMain else Color.White,
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(8.dp)
                     .size(24.dp)
-                    .clickable { viewModel!!.updateBookmarkStatus(recipe.id,!recipe.isBookmarked)
-                        Toast.makeText(context,"Recipe Added to Bookmarked", Toast.LENGTH_SHORT).show()
+                    .clickable {
+                        viewModel.updateBookmarkStatus(recipe.id,!currentRecipe.isBookmarked)
+
                     }
             )
+
         }
     }
 }
@@ -346,14 +348,17 @@ fun RecipeCard(
 @Composable
 fun NewRecipes(recipes: List<Recipe>, onRecipeClick: (Int) -> Unit,viewModel: HomeScreenViewModel? ) {
     Text(text = "Newest", color = Color.White, fontSize = 18.sp, fontWeight = Bold)
+    val recipesReversed = recipes.reversed()
     LazyRow {
-        items(recipes) { recipe ->
-            RecipeCard(
-                recipe = recipe,
-                onClick = { onRecipeClick(recipe.id) }, // Pass recipe ID
-                verticalStyle = true,
-                viewModel= viewModel
-            )
+        items(recipesReversed) { recipe ->
+            if (viewModel != null) {
+                RecipeCard(
+                    recipe = recipe,
+                    onClick = { onRecipeClick(recipe.id) }, // Pass recipe ID
+                    verticalStyle = true,
+                    viewModel= viewModel
+                )
+            }
         }
     }
 }
@@ -361,20 +366,37 @@ fun NewRecipes(recipes: List<Recipe>, onRecipeClick: (Int) -> Unit,viewModel: Ho
 @Composable
 fun RecommendedRecipes(recipes: List<Recipe>, onRecipeClick: (Int) -> Unit,viewModel: HomeScreenViewModel?) {
     Row(Modifier.padding(vertical = 8.dp)) {
-        Text(text = "Recommended", fontSize = 16.sp, color = Color.White, fontWeight = Bold)
+        Text(text = "All Recipes", fontSize = 16.sp, color = Color.White, fontWeight = Bold)
         Spacer(modifier = Modifier.weight(1f))
-        Text(text = "See All", fontSize = 12.sp, color = Color.Gray)
+       // Text(text = "See All", fontSize = 12.sp, color = Color.Gray)
     }
     Column {
         recipes.forEach { recipe ->
-            RecipeCard(
-                recipe = recipe,
-                onClick = { onRecipeClick(recipe.id) }, // Pass recipe ID
-                viewModel= viewModel
-            )
+            if (viewModel != null) {
+                RecipeCard(
+                    recipe = recipe,
+                    onClick = { onRecipeClick(recipe.id) }, // Pass recipe ID
+                    viewModel= viewModel
+                )
+            }
         }
     }
 }
 
-
-
+@Composable
+fun CategorizedRecipes(recipes: List<Recipe>, onRecipeClick: (Int) -> Unit,viewModel: HomeScreenViewModel?){
+    Column(
+        modifier=Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+            .verticalScroll(rememberScrollState())
+    ) {
+        Text(text="Your  Recipes", fontSize = 16.sp, color = Color.White, fontWeight = Bold)
+        Spacer(modifier = Modifier.height(16.dp))
+        recipes.forEach { recipe ->
+            RecipeCard(
+                recipe = recipe,
+                onClick = {  onRecipeClick(recipe.id)}, // Pass recipe ,
+                viewModel= viewModel!!,
+            )
+        }
+    }
+}

@@ -1,6 +1,7 @@
 package com.example.wasfaty.models.datasource.local
 
 import com.example.wasfaty.R
+import com.example.wasfaty.models.entity.Categorie
 import com.example.wasfaty.models.entity.Recipe
 import com.example.wasfaty.view.navBar.Item
 
@@ -21,7 +22,7 @@ val InitialRecipes = listOf(
             8. Let it cool for 10 minutes before serving.
         """.trimIndent(),
         imagePath = R.drawable.classic_lasagna.toString(),
-        category = "Italian" // Added category
+        category = "Dinner" // Updated category
     ),
     Recipe(
         title = "Chicken Stir-Fry",
@@ -39,7 +40,7 @@ val InitialRecipes = listOf(
             8. Serve hot over rice or noodles.
         """.trimIndent(),
         imagePath = R.drawable.quick_chicken_stir_fry.toString(),
-        category = "Asian" // Added category
+        category = "Lunch" // Updated category
     ),
     Recipe(
         title = "Chocolate Chip Cookies",
@@ -57,7 +58,7 @@ val InitialRecipes = listOf(
             8. Let cookies cool on a wire rack.
         """.trimIndent(),
         imagePath = R.drawable.chocolate_chip_cookies.toString(),
-        category = "Dessert" // Added category
+        category = "Snacks" // Updated category
     ),
     Recipe(
         title = "Beef Tacos",
@@ -73,7 +74,7 @@ val InitialRecipes = listOf(
             6. Serve immediately with lime wedges.
         """.trimIndent(),
         imagePath = R.drawable.ground_beef_tacos.toString(),
-        category = "Mexican" // Added category
+        category = "Lunch" // Updated category
     ),
     Recipe(
         title = "Vegetable Curry",
@@ -90,6 +91,17 @@ val InitialRecipes = listOf(
             7. Serve hot with rice or naan bread.
         """.trimIndent(),
         imagePath = R.drawable.vegetable_curry.toString(),
-        category = "Indian" // Added category
+        category = "Dinner" // Updated category
     )
+)
+
+val categories = listOf(
+    Categorie(1, "Breakfast"),
+    Categorie(2, "Lunch"),
+    Categorie(3, "Dinner"),
+    Categorie(4, "Snacks"),
+    Categorie(5, "Desserts"),
+    Categorie(6, "Brunch"),
+    Categorie(7, "Late Night Meals"),
+    Categorie(8, "Appetizers")
 )

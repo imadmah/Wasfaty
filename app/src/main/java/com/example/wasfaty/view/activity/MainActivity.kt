@@ -11,6 +11,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
@@ -25,14 +26,18 @@ import com.example.wasfaty.ui.theme.WasfatyTheme
 import com.example.wasfaty.models.datasource.local.RecipeDataSource
 import com.example.wasfaty.models.datasource.local.RecipeDatabase
 import com.example.wasfaty.models.entity.Recipe
+import com.example.wasfaty.models.repository.MealPlanRepository
 import com.example.wasfaty.models.repository.RecipeRepository
 import com.example.wasfaty.view.BookmarkScreen
 import com.example.wasfaty.view.HomeScreen
 import com.example.wasfaty.view.RecipeScreen
 import com.example.wasfaty.view.Screen
+import com.example.wasfaty.view.PlanYourMealScreen
 import com.example.wasfaty.view.navBar.ColorButtonNavBar
 import com.example.wasfaty.viewmodel.HomeScreenViewModel
 import com.example.wasfaty.viewmodel.HomeScreenViewModelFactory
+import com.example.wasfaty.viewmodel.MealPlanViewModel
+import com.example.wasfaty.viewmodel.MealPlanViewModelFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -44,6 +49,7 @@ class MainActivity : ComponentActivity() {
     private val KEY_ONBOARDING_COMPLETED = "onboarding_completed"
 
     private lateinit var homeScreenViewModel: HomeScreenViewModel
+    private lateinit var mealPlannerViewModel: MealPlanViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,6 +68,7 @@ class MainActivity : ComponentActivity() {
                 val database = RecipeDatabase.getDatabase(applicationContext)
                 val localDataSource = RecipeDataSource(database.recipeDao())
                 val repository = RecipeRepository(localDataSource)
+                val repositoryMealPlan = MealPlanRepository(database.mealPlanDao())
 
                 // Initialize ViewModel using ViewModelProvider
                 homeScreenViewModel = ViewModelProvider(
@@ -69,11 +76,17 @@ class MainActivity : ComponentActivity() {
                     HomeScreenViewModelFactory(repository)
                 )[HomeScreenViewModel::class.java]
 
+                mealPlannerViewModel = ViewModelProvider(
+                    this@MainActivity,
+                    MealPlanViewModelFactory(repositoryMealPlan,repository)
+                )[MealPlanViewModel::class.java]
+
+
                 // Once the ViewModel is ready, set the content
                 withContext(Dispatchers.Main) {
                     setContent {
                         WasfatyTheme {
-                            MyApp(homeScreenViewModel)
+                            MyApp(homeScreenViewModel,mealPlannerViewModel)
                         }
                     }
                 }
@@ -98,12 +111,11 @@ class MainActivity : ComponentActivity() {
 fun Preview() {
      lateinit var homeScreenViewModel: HomeScreenViewModel
     WasfatyTheme {
-        MyApp(homeScreenViewModel = homeScreenViewModel)
     }
 }
 
 @Composable
-fun MyApp(homeScreenViewModel: HomeScreenViewModel) {
+fun MyApp(homeScreenViewModel: HomeScreenViewModel,mealPlannerViewModel: MealPlanViewModel) {
     val navController = rememberNavController()
     val recipebyId by homeScreenViewModel.recipeById.observeAsState()
 
@@ -130,10 +142,12 @@ fun MyApp(homeScreenViewModel: HomeScreenViewModel) {
             }
             composable(Screen.RecipeDetails.route) { backStackEntry ->
                 val recipeId = backStackEntry.arguments?.getString("recipeId")?.toIntOrNull()
+
                 recipeId?.let {homeScreenViewModel.getRecipeById(it) }
+
                 val recipe = recipebyId
                 if (recipe != null) { //ToDo know the smart Cast diffrenece and shit here aka if i use val recipe etc
-                    RecipeScreen(recipe)
+                    RecipeScreen(recipe,homeScreenViewModel,mealPlannerViewModel)
                 }
             }
             composable(Screen.Settings.route) {
@@ -142,7 +156,7 @@ fun MyApp(homeScreenViewModel: HomeScreenViewModel) {
                 }
             }
             composable(Screen.PlanRecipeScreen.route) {
-                // PlanRecipeScreen logic
+                PlanYourMealScreen(viewModel = mealPlannerViewModel)
             }
             composable(Screen.BookmarkScreen.route) {
                 BookmarkScreen(homeScreenViewModel) { recipeId ->

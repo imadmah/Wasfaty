@@ -4,45 +4,37 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.annotation.FloatRange
-import androidx.annotation.IntRange
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import com.example.wasfaty.R
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
-import com.example.wasfaty.ui.theme.OnboardingTheme
-import com.google.accompanist.pager.ExperimentalPagerApi
-import com.google.accompanist.pager.HorizontalPager
-import com.google.accompanist.pager.PagerState
+import com.example.wasfaty.R
 import com.example.wasfaty.models.entity.LoaderIntro
 import com.example.wasfaty.models.entity.OnBoardingData
 import com.example.wasfaty.ui.theme.Grey300
+import com.example.wasfaty.ui.theme.OnboardingTheme
 import com.example.wasfaty.ui.theme.RedLight
+import com.google.accompanist.pager.*
 import kotlinx.coroutines.launch
-
 
 class OnBoarding : ComponentActivity() {
 
-    @OptIn(ExperimentalPagerApi::class)
-    public override fun onCreate(savedInstanceState: Bundle?) {
+    override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.statusBarColor = ContextCompat.getColor(this, R.color.grey_900)
         setContent {
@@ -54,54 +46,35 @@ class OnBoarding : ComponentActivity() {
         }
     }
 
-    @ExperimentalPagerApi
-    @Preview(showBackground = true)
-    @Composable
-    fun PreviewFunction() {
-        Surface(modifier = Modifier.fillMaxSize()) {
-            MainFunction()
-        }
-    }
-
-    private fun navToMainActivity(){
+    private fun navToMainActivity() {
         val context = this
         val intent = Intent(context, MainActivity::class.java)
         startActivity(intent)
-        finish() // Optionally finish the current activity if you don't want users to return to it
-
+        finish()
     }
 
-    @ExperimentalPagerApi
+    @OptIn(ExperimentalPagerApi::class)
     @Composable
     fun MainFunction() {
-        val items = ArrayList<OnBoardingData>()
-        items.add(
+        val items = listOf(
             OnBoardingData(
                 R.raw.whatdoieat,
                 "What should I eat today?",
-                "If you can't decide what to eat,Plan Your Weekly Meals now!"
-            )
-        )
-        items.add(
+                "If you can't decide what to eat, Plan Your Weekly Meals now!"
+            ),
             OnBoardingData(
                 R.raw.foodcarousel,
                 "Organize Your Favorite Recipes!",
-                "Easily save and categorize your favorite recipes in one place. From family favorites to new discoveries, keep everything neatly organized and accessible.  "
-            )
-        )
-        items.add(
+                "Easily save and categorize your favorite recipes in one place."
+            ),
             OnBoardingData(
                 R.raw.orderfood,
                 "Share Your Delicious Creations!",
-                "Share your favorite recipes with friends and family. Inspire others by sending your culinary masterpieces with just a few taps"
+                "Share your favorite recipes with friends and family."
             )
         )
-        val pagerState = rememberPagerState(
-            pageCount = items.size,
-            initialOffscreenLimit = 2,
-            infiniteLoop = false,
-            initialPage = 0
-        )
+
+        val pagerState = rememberPagerState()
 
         OnBoardingPager(
             item = items,
@@ -112,7 +85,7 @@ class OnBoarding : ComponentActivity() {
         )
     }
 
-    @ExperimentalPagerApi
+    @OptIn(ExperimentalPagerApi::class)
     @Composable
     fun OnBoardingPager(
         item: List<OnBoardingData>,
@@ -124,7 +97,8 @@ class OnBoarding : ComponentActivity() {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 HorizontalPager(
-                    state = pagerState
+                    count = item.size, // use 'count' instead of 'pageCount'
+                    state = pagerState,
                 ) { page ->
                     Column(
                         modifier = Modifier
@@ -132,11 +106,13 @@ class OnBoarding : ComponentActivity() {
                             .fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
+                        // Assuming you have a LoaderIntro composable for displaying the image
                         LoaderIntro(
                             modifier = Modifier
                                 .size(200.dp)
                                 .fillMaxWidth()
-                                .align(alignment = Alignment.CenterHorizontally), item[page].image
+                                .align(alignment = Alignment.CenterHorizontally),
+                            image = item[page].image
                         )
                         Text(
                             text = item[page].title,
@@ -156,13 +132,14 @@ class OnBoarding : ComponentActivity() {
                     }
                 }
 
-                PagerIndicator(item.size, pagerState.currentPage)
+                PagerIndicator(size = item.size, currentPage = pagerState.currentPage)
             }
+
             Box(modifier = Modifier.align(Alignment.BottomCenter)) {
                 val coroutineScope = rememberCoroutineScope()
 
                 BottomSection(
-                    pagerState.currentPage,
+                    currentPage = pagerState.currentPage,
                     onSkipClick = {
                         coroutineScope.launch {
                             pagerState.animateScrollToPage(item.size - 1) // Skip to last page
@@ -180,28 +157,7 @@ class OnBoarding : ComponentActivity() {
                     isSkipClicked = true
                 )
             }
-
         }
-    }
-
-    @ExperimentalPagerApi
-    @Composable
-    fun rememberPagerState(
-        @IntRange(from = 0) pageCount: Int,
-        @IntRange(from = 0) initialPage: Int = 0,
-        @FloatRange(from = 0.0, to = 1.0) initialPageOffset: Float = 0f,
-        @IntRange(from = 1) initialOffscreenLimit: Int = 1,
-        infiniteLoop: Boolean = false
-    ): PagerState = rememberSaveable(
-        saver = PagerState.Saver
-    ) {
-        PagerState(
-            pageCount = pageCount,
-            currentPage = initialPage,
-            currentPageOffset = initialPageOffset,
-            offscreenLimit = initialOffscreenLimit,
-            infiniteLoop = infiniteLoop
-        )
     }
 
     @Composable
@@ -235,7 +191,7 @@ class OnBoarding : ComponentActivity() {
         )
     }
 
-    @ExperimentalPagerApi
+    @OptIn(ExperimentalPagerApi::class)
     @Composable
     fun BottomSection(
         currentPage: Int,
@@ -291,5 +247,4 @@ class OnBoarding : ComponentActivity() {
             }
         }
     }
-
 }

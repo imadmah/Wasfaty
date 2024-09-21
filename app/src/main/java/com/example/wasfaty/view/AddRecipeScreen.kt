@@ -15,6 +15,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -36,13 +37,10 @@ import com.example.wasfaty.view.navBar.colorButtons
 
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.TextFieldColors
+import com.example.wasfaty.models.datasource.local.categories
 import com.example.wasfaty.models.entity.Recipe
 
-@Preview
-@Composable fun ThisScreenPreview(){
-    AddRecipeScreen { Recipe ->
-    }
-}
+
 
 
 @Composable
@@ -55,6 +53,7 @@ fun AddRecipeScreen(onSaveClick: (Recipe) -> Unit) {
     var difficultyState by remember { mutableStateOf("Easy") }
     var ingredientsState by remember { mutableStateOf("") }
     var stepsState by remember { mutableStateOf("") }
+    var selectedCategory by remember { mutableStateOf("Desserts") } // Default category
 
     // State for selected image
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
@@ -159,6 +158,14 @@ fun AddRecipeScreen(onSaveClick: (Recipe) -> Unit) {
         Spacer(modifier = Modifier.height(16.dp))
 
         // Difficulty Dropdown
+
+        CategoryDropdown(
+            selectedCategory = selectedCategory,
+            onCategoryChange = { selectedCategory = it }
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Category Dropdown
         DifficultyDropdown(
             selectedDifficulty = difficultyState,
             onDifficultyChange = { difficultyState = it }
@@ -244,7 +251,7 @@ fun AddRecipeScreen(onSaveClick: (Recipe) -> Unit) {
                         ingredients = ingredientsState,
                         cookingSteps = stepsState,
                         imagePath = selectedImageUri?.toString(),
-                        category = "21" ,
+                        category = selectedCategory // Assign selected category
                     )
                     onSaveClick(newRecipe)
 
@@ -258,6 +265,7 @@ fun AddRecipeScreen(onSaveClick: (Recipe) -> Unit) {
                     ingredientsState = ""
                     stepsState = ""
                     selectedImageUri = null
+                    selectedCategory = "Desserts" // Reset category
                 }
             },
             colors = ButtonDefaults.buttonColors(
@@ -343,32 +351,116 @@ fun DifficultyDropdown(
                 color = GreenMain, // Border color
                 shape = RoundedCornerShape(4.dp)
             )
-            .clickable { expanded = true }
             .padding(16.dp)
+            .clickable { expanded = true }
     ) {
-        Text(
-            text = selectedDifficulty,
-            textAlign = TextAlign.Start,
-            color = Color.White
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = selectedDifficulty,
+                textAlign = TextAlign.Start,
+                color = Color.White
+            )
+            Icon(
+                imageVector = Icons.Default.ArrowDropDown,
+                contentDescription = "Dropdown Icon",
+                tint = Color.White
+            )
+        }
 
         DropdownMenu(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.Black)
+            ,
             expanded = expanded,
             onDismissRequest = { expanded = false }
         ) {
-            difficultyLevels.forEach { difficulty ->
+            difficultyLevels.forEachIndexed { index, difficulty ->
                 DropdownMenuItem(
-                    
-                    text = { Text(text = difficulty) },
+                    text = { Text(text = difficulty, color = Color.White) },
                     onClick = {
                         onDifficultyChange(difficulty)
                         expanded = false
                     }
 
                 )
+                if (index < categories.size - 1) {
+                    HorizontalDivider(
+                        thickness = 1.dp,
+                        color = Color.LightGray
+                    )
+                }
             }
         }
     }
 }
+
+@Composable
+fun CategoryDropdown(
+    selectedCategory: String,
+    onCategoryChange: (String) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(
+                width = 1.dp,
+                color = GreenMain, // Border color
+                shape = RoundedCornerShape(4.dp)
+            )
+            .clickable { expanded = true }
+            .padding(16.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = selectedCategory,
+                textAlign = TextAlign.Start,
+                color = Color.White
+            )
+            Icon(
+                imageVector = Icons.Default.ArrowDropDown,
+                contentDescription = "Dropdown Icon",
+                tint = Color.White
+            )
+        }
+
+        DropdownMenu(
+            modifier = Modifier.fillMaxWidth()
+                .background(Color.Black),
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            categories.forEachIndexed { index, category ->
+                DropdownMenuItem(
+                    modifier = Modifier.fillMaxWidth(),
+                    text = { Text(text = category.name, color = Color.White) },
+                    onClick = {
+                        onCategoryChange(category.name)
+                        expanded = false
+                    }
+                )
+                // Add a divider after each item except the last one
+                if (index < categories.size - 1) {
+                    HorizontalDivider(
+                        thickness = 1.dp,
+                        color = Color(0xFFE0E0E0), // Pale Gray
+                    )
+                }
+            }
+        }
+    }
+}
+
+
 
 

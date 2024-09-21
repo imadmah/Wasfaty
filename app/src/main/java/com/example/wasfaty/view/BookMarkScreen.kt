@@ -2,6 +2,7 @@ package com.example.wasfaty.view
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -10,9 +11,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.wasfaty.viewmodel.HomeScreenViewModel
@@ -24,10 +27,13 @@ fun BookmarkScreen(viewModel: HomeScreenViewModel,onRecipeClick: (Int) -> Unit){
 
 
     Column(
-       modifier=Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
-       .verticalScroll(rememberScrollState())
+       modifier= Modifier
+           .padding(horizontal = 12.dp, vertical = 16.dp)
+           .verticalScroll(rememberScrollState())
+           .fillMaxWidth(),
+    horizontalAlignment= Alignment.CenterHorizontally,
    ) {
-       Text(text="Your BookMarked Recipes", fontSize = 16.sp, color = Color.White, fontWeight = FontWeight.Bold)
+       Text(text="BookMarked Recipes",fontSize = 16.sp, color = Color.White, fontWeight = FontWeight.Bold)
        Spacer(modifier = Modifier.height(16.dp))
        bookmarkedRecipes.forEach { recipe ->
            RecipeCard(

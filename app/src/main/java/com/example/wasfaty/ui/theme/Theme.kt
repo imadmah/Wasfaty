@@ -34,10 +34,10 @@ private val LightColorScheme = lightColorScheme(
     primary = Purple40,
     secondary = PurpleGrey40,
     tertiary = Pink40,            // Main background color (e.g., dark gray or black)
-    onPrimary = Color.White,        // Text or icons on primary background (usually white or light gray)
+    onPrimary = Color.Black,        // Text or icons on primary background (usually white or light gray)
     onBackground = Color.Black,     // Text or icons on the general background
     surface = Color.Black,          // Elevated surfaces like cards or dialogs
-    onSurface = Color.White,        // Text or icons on surfaces (should contrast with the surface color)
+    onSurface = Color.Black,        // Text or icons on surfaces (should contrast with the surface color)
     error = Color.Red,              // Error color for error states or messages
     onError = Color.White
 

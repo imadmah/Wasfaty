@@ -81,6 +81,8 @@ dependencies {
     implementation ("com.google.accompanist:accompanist-systemuicontroller:0.28.0")
     implementation("androidx.room:room-runtime:2.5.0")
     implementation ("io.github.vanpra.compose-material-dialogs:datetime:0.9.0")
+    implementation("androidx.core:core-splashscreen:1.0.0")
+
     kapt("androidx.room:room-compiler:2.5.0")
     implementation("io.coil-kt:coil-compose:2.7.0")
     val lifecycle_version = "2.8.4"

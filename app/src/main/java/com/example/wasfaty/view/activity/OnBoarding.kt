@@ -26,6 +26,7 @@ import androidx.core.content.ContextCompat
 import com.example.wasfaty.R
 import com.example.wasfaty.models.entity.LoaderIntro
 import com.example.wasfaty.models.entity.OnBoardingData
+import com.example.wasfaty.ui.theme.Screen_Bg // Define this color in your theme
 import com.example.wasfaty.ui.theme.Grey300
 import com.example.wasfaty.ui.theme.OnboardingTheme
 import com.example.wasfaty.ui.theme.RedLight
@@ -39,7 +40,7 @@ class OnBoarding : ComponentActivity() {
         window.statusBarColor = ContextCompat.getColor(this, R.color.grey_900)
         setContent {
             OnboardingTheme {
-                Surface(modifier = Modifier.fillMaxSize()) {
+                Surface(modifier = Modifier.fillMaxSize(), color = Screen_Bg) {
                     MainFunction()
                 }
             }
@@ -68,9 +69,9 @@ class OnBoarding : ComponentActivity() {
                 "Easily save and categorize your favorite recipes in one place."
             ),
             OnBoardingData(
-                R.raw.orderfood,
-                "Share Your Delicious Creations!",
-                "Share your favorite recipes with friends and family."
+                R.raw.planfood,
+                "Plan Your favorite Meals !",
+                "Schedule the meals you wanna eat EveryDay"
             )
         )
 
@@ -81,7 +82,7 @@ class OnBoarding : ComponentActivity() {
             pagerState = pagerState,
             modifier = Modifier
                 .fillMaxWidth()
-                .background(color = Color.White)
+                .background(color = Screen_Bg)
         )
     }
 
@@ -97,7 +98,7 @@ class OnBoarding : ComponentActivity() {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 HorizontalPager(
-                    count = item.size, // use 'count' instead of 'pageCount'
+                    count = item.size,
                     state = pagerState,
                 ) { page ->
                     Column(
@@ -106,7 +107,7 @@ class OnBoarding : ComponentActivity() {
                             .fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        // Assuming you have a LoaderIntro composable for displaying the image
+                        // Image section
                         LoaderIntro(
                             modifier = Modifier
                                 .size(200.dp)
@@ -114,20 +115,28 @@ class OnBoarding : ComponentActivity() {
                                 .align(alignment = Alignment.CenterHorizontally),
                             image = item[page].image
                         )
+
+                        // Set a fixed height for title and description to avoid dynamic layout changes
+                        Spacer(modifier = Modifier.height(50.dp)) // Adjust for consistent spacing
                         Text(
                             text = item[page].title,
-                            modifier = Modifier.padding(top = 50.dp),
-                            color = Color.Black,
+                            color = Color.White,
                             style = MaterialTheme.typography.headlineSmall,
-                            textAlign = TextAlign.Center
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                 // Set fixed height for title
                         )
 
+                        Spacer(modifier = Modifier.height(30.dp)) // Consistent spacing
                         Text(
                             text = item[page].desc,
-                            modifier = Modifier.padding(top = 30.dp, start = 20.dp, end = 20.dp),
-                            color = Color.Black,
+                            color = Color.White,
                             style = MaterialTheme.typography.bodyMedium,
-                            textAlign = TextAlign.Center
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(60.dp) // Set fixed height for description
                         )
                     }
                 }
@@ -142,7 +151,7 @@ class OnBoarding : ComponentActivity() {
                     currentPage = pagerState.currentPage,
                     onSkipClick = {
                         coroutineScope.launch {
-                            pagerState.animateScrollToPage(item.size - 1) // Skip to last page
+                            pagerState.animateScrollToPage(item.size - 1)
                         }
                     },
                     onNextClick = {
@@ -166,8 +175,10 @@ class OnBoarding : ComponentActivity() {
         currentPage: Int
     ) {
         Row(
-            horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier.padding(top = 60.dp)
+            horizontalArrangement = Arrangement.Center, // Center the dots
+            modifier = Modifier
+                .padding(top = 60.dp)
+                .fillMaxWidth() // Ensure it takes the full width
         ) {
             repeat(size) {
                 Indicator(isSelected = it == currentPage)
@@ -175,10 +186,10 @@ class OnBoarding : ComponentActivity() {
         }
     }
 
+
     @Composable
     fun Indicator(isSelected: Boolean) {
         val width = animateDpAsState(targetValue = if (isSelected) 25.dp else 10.dp)
-
         Box(
             modifier = Modifier
                 .padding(1.dp)
@@ -247,4 +258,5 @@ class OnBoarding : ComponentActivity() {
             }
         }
     }
+
 }

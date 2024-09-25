@@ -1,6 +1,7 @@
 # Wasfaty a recipe app
   i made wasfaty from a need to Discover new recipes and save in a concise way, also plan your weekly or monthly dishes
-##Screens 
+  
+## Screens 
   The app is entirely in dark Mode 
   ** **
   <img src="https://github.com/user-attachments/assets/7a76bf06-3116-43e5-9ec9-a116127bba3e" width="300"/> 

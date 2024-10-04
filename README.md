@@ -18,4 +18,4 @@ To get started with this project, follow these steps:
 
 **Clone the repository:**
 
-   ```sh! https://github.com/imadmah/Wasfaty.git
+   sh! https://github.com/imadmah/Wasfaty.git

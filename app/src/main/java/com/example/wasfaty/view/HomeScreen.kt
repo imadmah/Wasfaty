@@ -1,7 +1,6 @@
 package com.example.wasfaty.view
 
 import android.net.Uri
-import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -27,8 +26,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Face
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -61,7 +58,6 @@ import com.example.wasfaty.ui.theme.SearchBar
 import com.example.wasfaty.ui.theme.TextColor
 import com.example.wasfaty.viewmodel.HomeScreenViewModel
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.ui.platform.LocalContext
 import coil.compose.rememberAsyncImagePainter
 import com.example.wasfaty.models.datasource.local.categories
 import com.example.wasfaty.ui.theme.GreenMain
@@ -79,28 +75,53 @@ fun HomeScreen(viewModel: HomeScreenViewModel?, onRecipeClick: (Int) -> Unit) {
             } ?: allRecipes
         }
     }
+    var filteredRecipes by remember { mutableStateOf<List<Recipe>>(emptyList()) }
 
     Column(
         modifier = Modifier
             .padding(horizontal = 12.dp, vertical = 8.dp)
             .fillMaxWidth()
     ) {
-        SearchScreen()
+        SearchBar(allRecipes, onSearch = {
+            filteredRecipes = it
+        }
+        )
         Text(text = "Categories", fontWeight = Bold, fontSize = 18.sp, color = TextColor)
         Categories(selectedCategory) { category ->
             selectedCategory = if (selectedCategory == category) null else category
         }
 
-        if (selectedCategory != null) {
-            CategorizedRecipes(recipes = categorizedRecipes, onRecipeClick = onRecipeClick, viewModel)
-        } else {
-            Column(Modifier.verticalScroll(rememberScrollState())) {
-                NewRecipes(recipes = newestRecipes, onRecipeClick = onRecipeClick, viewModel)
-                RecommendedRecipes(recipes = allRecipes, onRecipeClick = onRecipeClick, viewModel)
+        if (filteredRecipes.isEmpty()) {
+            if (selectedCategory != null) {
+                CategorizedRecipes(
+                    recipes = categorizedRecipes,
+                    onRecipeClick = onRecipeClick,
+                    viewModel
+                )
+            } else {
+                Column(Modifier.verticalScroll(rememberScrollState())) {
+                    NewRecipes(recipes = newestRecipes, onRecipeClick = onRecipeClick, viewModel)
+                    RecommendedRecipes(
+                        recipes = allRecipes,
+                        onRecipeClick = onRecipeClick,
+                        viewModel
+                    )
+                }
             }
         }
+        else {
+            if (selectedCategory != null) {
+                CategorizedRecipes(recipes = categorizedRecipes, onRecipeClick = onRecipeClick, viewModel)
+            } else {
+                Column(Modifier.verticalScroll(rememberScrollState())) {
+
+                    RecommendedRecipes(recipes = filteredRecipes, onRecipeClick = onRecipeClick, viewModel)
+                }
+            }
+        }
+        }
     }
-}
+
 @Composable
 fun Categories(selectedCategory: Categorie?, onCategoryClick: (Categorie) -> Unit) {
 
@@ -212,8 +233,26 @@ fun SearchView(
     )
 }
 
+fun orderedMatch(query: String, target: String): Boolean {
+    val queryLower = query.lowercase()
+    val targetLower = target.lowercase()
+    var queryIndex = 0
+
+    // Iterate through the target string and match characters in the same order
+    for (char in targetLower) {
+        if (queryLower[queryIndex] == char) {
+            queryIndex++
+        }
+        if (queryIndex == queryLower.length) {
+            return true // All characters matched in order
+        }
+    }
+    return false // Not all characters matched
+}
+
+
 @Composable
-fun SearchScreen() {
+fun SearchBar(allRecipes: List<Recipe>, onSearch: (List<Recipe>) -> Unit) {
     var query by remember { mutableStateOf("") }
 
     Column(Modifier.padding(8.dp)) {
@@ -221,13 +260,22 @@ fun SearchScreen() {
             query = query,
             onQueryChanged = { newQuery ->
                 query = newQuery
+                if (newQuery.isEmpty()) {
+                    // Clear the search if the query is empty
+                    onSearch(emptyList())
+                } else {
+                    // Filter the recipes dynamically as the query changes
+                    val filteredRecipes = allRecipes.filter { recipe ->
+                        orderedMatch(newQuery, recipe.title)
+                    }
+                    onSearch(filteredRecipes)
+                }
             },
-            onSearch = {
-            },
+            onSearch = {},  // No action needed for onSearch because we now search dynamically
             backgroundColor = SearchBar, // Customize the background color
             contentColor = Color.White, // Customize the text color
             placeholderColor = Color.Gray, // Customize the placeholder color
-            iconColor = Color.Gray// Customize the icon color
+            iconColor = Color.Gray // Customize the icon color
         )
     }
 }

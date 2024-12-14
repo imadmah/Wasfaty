@@ -8,7 +8,14 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -115,19 +122,23 @@ fun Preview() {
 }
 
 @Composable
-fun MyApp(homeScreenViewModel: HomeScreenViewModel,mealPlannerViewModel: MealPlanViewModel) {
+fun MyApp(homeScreenViewModel: HomeScreenViewModel, mealPlannerViewModel: MealPlanViewModel) {
     val navController = rememberNavController()
-    val recipebyId by homeScreenViewModel.recipeById.observeAsState()
-
 
     Scaffold(
         bottomBar = {
-            ColorButtonNavBar(
-                onHomeClick = { navController.navigate(Screen.Home.route) },
-                onBookmarkClick = { navController.navigate(Screen.BookmarkScreen.route) },
-                onCalendarClick = { navController.navigate(Screen.PlanRecipeScreen.route) },
-                onSettingsClick = { navController.navigate(Screen.Settings.route) }
-            )
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(WindowInsets.navigationBars.asPaddingValues()) // Add padding for the navigation bar
+            ) {
+                ColorButtonNavBar(
+                    onHomeClick = { navController.navigate(Screen.Home.route) },
+                    onBookmarkClick = { navController.navigate(Screen.BookmarkScreen.route) },
+                    onCalendarClick = { navController.navigate(Screen.PlanRecipeScreen.route) },
+                    onSettingsClick = { navController.navigate(Screen.Settings.route) }
+                )
+            }
         }
     ) { innerPadding ->
         NavHost(
@@ -143,11 +154,11 @@ fun MyApp(homeScreenViewModel: HomeScreenViewModel,mealPlannerViewModel: MealPla
             composable(Screen.RecipeDetails.route) { backStackEntry ->
                 val recipeId = backStackEntry.arguments?.getString("recipeId")?.toIntOrNull()
 
-                recipeId?.let {homeScreenViewModel.getRecipeById(it) }
+                recipeId?.let { homeScreenViewModel.getRecipeById(it) }
 
-                val recipe = recipebyId
-                if (recipe != null) { //ToDo know the smart Cast diffrenece and shit here aka if i use val recipe etc
-                    RecipeScreen(recipe,homeScreenViewModel,mealPlannerViewModel)
+                val recipe by homeScreenViewModel.recipeById.observeAsState()
+                recipe?.let {
+                    RecipeScreen(it, homeScreenViewModel, mealPlannerViewModel)
                 }
             }
             composable(Screen.Settings.route) {
@@ -166,4 +177,3 @@ fun MyApp(homeScreenViewModel: HomeScreenViewModel,mealPlannerViewModel: MealPla
         }
     }
 }
-

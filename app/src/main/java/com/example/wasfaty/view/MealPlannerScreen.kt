@@ -43,6 +43,7 @@ import com.example.wasfaty.R
 import com.example.wasfaty.models.entity.MealPlan
 import com.example.wasfaty.models.entity.Recipe
 import com.example.wasfaty.ui.theme.GreenMain
+import com.example.wasfaty.ui.theme.Screen_Bg
 import com.example.wasfaty.viewmodel.HomeScreenViewModel
 import com.example.wasfaty.viewmodel.MealPlanViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -190,6 +191,7 @@ fun MealPlanItem(mealPlan: MealPlan, recipe: Recipe) {
         modifier = Modifier
             .fillMaxWidth()
             .size(120.dp)
+            .background(Screen_Bg)
             .padding(vertical = 8.dp),
     ) {
         Row {
@@ -199,7 +201,7 @@ fun MealPlanItem(mealPlan: MealPlan, recipe: Recipe) {
                     .padding(8.dp)
             ) {
                 Text(text = "Meal Type: ${mealPlan.mealType ?: "Unknown"}")
-                Text(text = "Date: ${mealPlan.date}")
+                Text(text = " ${recipe.title}")
             }
 
             Image(
